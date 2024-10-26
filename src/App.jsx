@@ -1,35 +1,102 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import currencyConverter from "./api/PostApi";
 
-function App() {
-  const [count, setCount] = useState(0)
+/* eslint-disable react/no-unknown-property */
+const App = () => {
+  const [amount, setAmount] = useState(0);
+  const [fromCurrency, setFromCurrency] = useState("USD");
+  const [toCurrency, setToCurrency] = useState("PKR");
+  const [convertedAmount, setConvertedAmount] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const handleConvertCurrency = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await currencyConverter(fromCurrency, toCurrency, amount);
+      const { conversion_result } = await res.data;
+      setLoading(false);
+      setConvertedAmount(conversion_result);
+    } catch (error) {
+      setError("Error fetching conversion rate");
+      console.error(error);
+    }
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <section className="currency-converter">
+      <div className="currency-div">
+        <h1>Currency Converter</h1>
+        <div>
+          <label htmlFor="currency_amount">
+            Amount:
+            <input
+              type="number"
+              id="currency_amount"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+          </label>
+        </div>
 
-export default App
+        <div className="currency-selector">
+          <div>
+            <label>
+              From:
+              <select
+                value={fromCurrency}
+                onChange={(e) => setFromCurrency(e.target.value)}
+              >
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="PKR">PKR</option>
+
+                <option value="INR">INR</option>
+                <option value="GBP">GBP</option>
+                <option value="AUD">AUD</option>
+              </select>
+            </label>
+          </div>
+          <div>
+            <label>
+              To:
+              <select
+                value={toCurrency}
+                onChange={(e) => setToCurrency(e.target.value)}
+              >
+                <option value="PKR">PKR</option>
+                <option value="INR">INR</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="GBP">GBP</option>
+                <option value="AUD">AUD</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <button
+          disabled={loading || amount <= 0}
+          onClick={handleConvertCurrency}
+        >
+          {loading ? "Converting.." : "Convert"}
+        </button>
+
+        <hr />
+        {convertedAmount && (
+          <div>
+            <h2>
+              {amount} {fromCurrency} = {convertedAmount.toFixed(2)}
+              {toCurrency}
+            </h2>
+          </div>
+        )}
+
+        {error && <p>{error}</p>}
+      </div>
+    </section>
+  );
+};
+
+export default App;
